@@ -1,0 +1,16 @@
+artifact_uri: file:///Users/victor/Documents/OPENCLASSROOMS/projet_7/mlruns/982388865821309393/a8a49621bb4d4816b0f211df5fc53c05/artifacts
+deleted_time: 1672849741095
+end_time: 1672849565876
+entry_point_name: ''
+experiment_id: '982388865821309393'
+lifecycle_stage: deleted
+run_id: a8a49621bb4d4816b0f211df5fc53c05
+run_name: thoughtful-hound-619
+run_uuid: a8a49621bb4d4816b0f211df5fc53c05
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1672849519770
+status: 3
+tags: []
+user_id: victor
