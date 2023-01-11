@@ -47,5 +47,5 @@ jobs:
       with:
         app-name: 'oc-credit-scoring'
         slot-name: 'production'
-        publish-profile: ${{ secrets.AzureAppService_PublishProfile_9e66a8349cd4443a9a04f0f39ba729e0 }}
+        publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE}}
         images: 'projet7.azurecr.io/${{ secrets.AzureAppService_ContainerUsername_3701e8b2d44d462ab9d5604dc4e5f705 }}/scoring:${{ github.sha }}'
