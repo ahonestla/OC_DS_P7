@@ -1,22 +1,28 @@
 import json
-from flask import Flask, request
+import pickle
+import uvicorn
+from fastapi import FastAPI
 import pandas as pd
 import numpy as np
-import pickle
+import sklearn
 
-app = Flask(__name__)
+app = FastAPI()
 
 # Unpick classifier
-clf = pickle.load(open('../models/randomforest_v1.pckl', 'rb'))
+clf = pickle.load(open('randomforest_v1.pckl', 'rb'))
 
 # Get parameters
 params = clf.get_params(deep=True)
 
 
-@app.route("/test")
+@app.get('/')
+def hello():
+    return "Hello There!"
+
+
+@app.get("/test")
 def test():
-    # print(data)
     return json.dumps(params)
 
-if __name__ == '__main__':
-    app.run(debug=True)
+if __name__ == "__main__":
+    uvicorn.run("scoring_api:app", host="0.0.0.0", port=8080)
