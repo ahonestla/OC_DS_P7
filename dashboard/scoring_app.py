@@ -10,9 +10,11 @@ st.title('Credit scoring application')
 # Select the customer
 cust = st.selectbox("Select the customer", ("Mark", "Pierre"))
 
-# Get data
-response = requests.get("http://127.0.01:5000/test")
-print(response.json())
+if cust == "Pierre":
+    # Get data
+    response = requests.get("http://backend:8080/test")
+    print(response.json())
 
-# Write
-st.write(response.json())
+    st.write(response.json())
+else:
+    st.write('Select someone')
