@@ -25,4 +25,4 @@ def test():
     return json.dumps(params)
 
 if __name__ == "__main__":
-    uvicorn.run("scoring_api:app", host="0.0.0.0", port=8080)
+    uvicorn.run("scoring_api:app", host="0.0.0.0", port=8000)

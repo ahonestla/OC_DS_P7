@@ -3,6 +3,7 @@ version: '3'
 services:
   frontend:
     image: scoringapp.azurecr.io/dashboard
+    container_name: scoringapp.azurecr.io/dashboard  
     build: dashboard
     ports:
       - 8501:8501
@@ -11,7 +12,8 @@ services:
     volumes:
         - ./storage:/storage
   backend:
-    image: scoringapp/api
+    image: scoringapp.azurecr.io/api
+    container_name: scoringapp.azurecr.io/api
     build:
       context: ./
       dockerfile: api/Dockerfile  

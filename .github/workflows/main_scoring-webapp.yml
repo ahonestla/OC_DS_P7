@@ -28,13 +28,28 @@ jobs:
           registry: https://scoringapp.azurecr.io/
           username: ${{ secrets.AZURE_CONTAINER_USERNAME }}
           password: ${{ secrets.AZURE_CONTAINER_PASSWORD }}
+      
+      # - name: Build docker-compose image
+      #   run: docker compose build
+      
+      # - name: Push docker-compose image to registry
+      #   run: docker compose push
 
-      - name: Build and push container image to registry
+      - name: Build and push dashboard to registry
         uses: docker/build-push-action@v2
         with:
+          context: ./dashboard
           push: true
-          tags: scoringapp.azurecr.io/${{ secrets.AZURE_CONTAINER_USERNAME }}/latest:${{ github.sha }}
-          file: ./Dockerfile
+          tags: scoringapp.azurecr.io/dashboard:${{ github.sha }}
+          file: ./dashboard/Dockerfile
+
+      - name: Build and push api to registry
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          push: true
+          tags: scoringapp.azurecr.io/api:${{ github.sha }}
+          file: ./api/Dockerfile
 
   deploy:
     runs-on: ubuntu-latest
@@ -44,11 +59,23 @@ jobs:
       url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
 
     steps:
-      - name: Deploy to Azure Web App
-        id: deploy-to-webapp
+      - name: Deploy Dashboard to Azure Web App
+        id: deploy-to-webapp-dashboard
         uses: azure/webapps-deploy@v2
         with:
-          app-name: 'scoring-webapp'
+          app-name: 'scoringapp-dashboard'
           slot-name: 'production'
-          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
-          images: 'scoringapp.azurecr.io/${{ secrets.AZURE_CONTAINER_USERNAME }}/latest:${{ github.sha }}'
+          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE_DASHBOARD }}
+          # images: 'scoringapp.azurecr.io/dashboard'
+          # images: 'scoringapp.azurecr.io/${{ secrets.AZURE_CONTAINER_USERNAME }}/latest:${{ github.sha }}'
+          images: 'scoringapp.azurecr.io/dashboard:${{ github.sha }}'
+
+      - name: Deploy API to Azure Web App
+        id: deploy-to-webapp-api
+        uses: azure/webapps-deploy@v2
+        with:
+          app-name: 'scoringapp-api'
+          slot-name: 'production'
+          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE_API }}
+          # images: 'scoringapp.azurecr.io/dashboard'
+          images: 'scoringapp.azurecr.io/api:${{ github.sha }}'
