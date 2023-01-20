@@ -8,21 +8,16 @@ import requests
 st.title('Credit scoring application')
 
 # Select the customer
-cust = st.selectbox("Select the customer", ("Mark", "api:8000", "backend:8000", "api:123"))
+cust = st.selectbox("Select the customer", ("Mark", "HTTP", "HTTPS"))
 
-if cust == "api:8000":
+if cust == "HTTP":
     # Get data
-    response = requests.get("http://api:8000/test")
+    response = requests.get("http://scoringapp-api.azurewebsites.net/test")
     print(response.json())
     st.write(response.json())
-elif cust == "backend:8000":
+elif cust == "HTTPS":
     # Get data
-    response = requests.get("http://backend:8000/test")
-    print(response.json())
-    st.write(response.json())
-elif cust == "api:123":
-    # Get data
-    response = requests.get("http://api:123/test")
+    response = requests.get("https://scoringapp-api.azurewebsites.net/test")
     print(response.json())
     st.write(response.json())
 else:
