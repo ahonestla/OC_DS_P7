@@ -2,5 +2,6 @@ dill==0.3.6
 fastapi==0.92.0
 numpy==1.23.5
 pandas==1.5.3
+xgboost==1.7.3
 scikit_learn==1.2.1
 uvicorn==0.20.0
