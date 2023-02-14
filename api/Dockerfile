@@ -4,7 +4,7 @@ WORKDIR /api/app
 COPY /api .
 COPY /models/xgboost_classifier.pckl ./models/xgboost_classifier.pckl
 COPY /models/xgboost_shap_explainer.pckl ./models/xgboost_shap_explainer.pckl
-COPY /data/processed/test_feature_engineering.csv ./data/processed/test_feature_engineering.csv
+COPY /data/processed/test_feature_engineering.gzip ./data/processed/test_feature_engineering.gzip
 RUN python3 -m pip install --upgrade pip
 RUN pip install -r requirements.txt
 ENTRYPOINT ["python3", "scoring_api.py"]
