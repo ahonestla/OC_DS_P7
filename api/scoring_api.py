@@ -19,7 +19,7 @@ MAIN_COLUMNS = ['CODE_GENDER', 'FLAG_OWN_CAR', 'FLAG_OWN_REALTY', 'CNT_CHILDREN'
 CUSTOM_THRESHOLD = 0.7
 
 # Get test dataframe
-test_df = pd.read_csv("./data/processed/test_feature_engineering.csv", index_col=[0])
+test_df = pd.read_csv("./data/processed/test_feature_engineering.gzip", compression='gzip', index_col=[0])
 test_columns = test_df.columns
 
 # Unpick XGB classifier
