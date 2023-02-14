@@ -10,8 +10,8 @@ import requests
 import names
 
 # API url
-API_URL = "http://0.0.0.0:8000/"
-# API_URL = "https://scoringapp-api.azurewebsites.net/"
+# API_URL = "http://0.0.0.0:8000/"
+API_URL = "https://scoringapp-api.azurewebsites.net/"
 
 # Timeout for requests
 TIMEOUT = 5
@@ -42,6 +42,22 @@ def get_cust_columns(cust_id):
     content = json.loads(json.loads(response.content))
     return pd.Series(content)
 
+
+@st.cache
+def get_columns_mean():
+    """ Get customers main columns mean values """
+    response = requests.get(API_URL + "columns/mean", timeout=TIMEOUT)
+    content = json.loads(json.loads(response.content))
+    return pd.Series(content)
+
+
+@st.cache
+def get_columns_neighbors(cust_id):
+    """ Get customers neighbors main columns mean values """
+    response = requests.get(API_URL + "columns/neighbors/id=" + str(cust_id), timeout=TIMEOUT)
+    content = json.loads(json.loads(response.content))
+    return pd.Series(content)
+  
 
 @st.cache
 def get_predictions(cust_id):
@@ -102,18 +118,24 @@ st.title('Credit scoring application')
 st.subheader("Victor BARBIER - Data Scientist - Projet 7")
 st.write("")
 
+
 # Settings on sidebar
 st.sidebar.subheader("Settings")
-# Select source of feature importance
-feat_imp_source = st.sidebar.radio("Feature importance source :", ('XGBoost', 'SHAP'))
 # Select the prediction threshold
-pred_thresh = st.sidebar.radio("Prediction threshold : ", ('Default', 'Optimized'))
+pred_thresh = st.sidebar.radio("Prediction threshold : ", ('Default', 'Optimized'),
+                               help="Threshold of the prediction for loan repaid (standard=0.5, optimized=0.7)")
 # Select type of explanation
-shap_plot_type = st.sidebar.radio("Select the plot type :", ('Waterfall', 'Bar'))
+shap_plot_type = st.sidebar.radio("Select the plot type :", ('Waterfall', 'Bar'),
+                                  help="Type of plot for the SHAP explanation")
+# Select source of feature importance
+feat_imp_source = st.sidebar.radio("Feature importances source :", ('XGBoost', 'SHAP'),
+                                   help="Feature importances computed from the XGBoost model or from the SHAP values")
+
 
 # Create tabs
-tab_all, tab_single = st.tabs(["All customers", "Single customer"])
+tab_single, tab_all = st.tabs(["Single customer", "All customers"])
 
+# General tab
 with tab_all:
 
     st.subheader("Feature importances (" + feat_imp_source + ")")
@@ -122,8 +144,8 @@ with tab_all:
     if (feat_imp_source == 'XGBoost'):
         # Display XGBoost feature importance
         st.altair_chart(xgb_importances_chart(), use_container_width=True)
-        expander = st.expander("See explanation")
-        expander.write("Blablabla features importances nanani nanana")
+        expander = st.expander("About the feature importances..")
+        expander.write("The feature importances displayed is computed from the trained XGBoost model.")
 
     else:
         # Display SHAP feature importance
@@ -132,15 +154,15 @@ with tab_all:
         fig.suptitle('Top 15 feature importances (test set)', fontsize=18)
         shap.summary_plot(shap_values, max_display=15, plot_type='bar', plot_size=[12, 6], show=False)
         st.pyplot(fig)
-        expander = st.expander("See explanation")
-        expander.write("Blablabla features importances nanani nanana")
+        expander = st.expander("About the feature importances..")
+        expander.write("The feature importances displayed is computed from the SHAP values of the new customers. (test dataset)")
 
 
+# Specific customer tab
 with tab_single:
     # Get customer ids
     cust_ids = get_cust_ids()
     cust_names = create_customer_names(len(cust_ids))
-    print(cust_names)
 
     # Select the customer
     cust_select_id = st.selectbox(
@@ -150,8 +172,10 @@ with tab_single:
 
     # Display the columns
     st.subheader("Customer information")
-    cust_df = get_cust_columns(cust_select_id).rename("id="+str(cust_select_id))
-    st.dataframe(cust_df)
+    cust_df = get_cust_columns(cust_select_id).rename(cust_names[cust_select_id])
+    neighbors_df = get_columns_neighbors(cust_select_id).rename("Neighbors average")
+    mean_df = get_columns_mean().rename("Customers average")
+    st.dataframe(pd.concat([cust_df, neighbors_df, mean_df], axis=1))
 
     # Display prediction
     st.subheader("Customer prediction")
@@ -159,6 +183,16 @@ with tab_single:
     pred = predictions['default'] if pred_thresh == 'Default' else predictions['custom']
     pred_text = "**:" + CLASSES_COLORS[pred] + "[" + CLASSES_NAMES[pred] + "]**"
     st.markdown("The model prediction is " + pred_text)
+    probability = round(predictions['proba'], 2)
+    delta = probability - 0.5 if pred_thresh == 'Default' else probability - 0.7
+    st.metric(label="Probability to repay", value=probability, delta=round(delta, 2))
+
+    # Display some information
+    expander = st.expander("About the classification model...")
+    expander.write("The prediction was made using a XGBoost classification model.")
+    expander.write("The model threshold can be modified in the settings. \
+                    The default threshold predict a loan repaid when probability is higher or equal to 0.5. \
+                    The optimized threshold predict a loan repaid when probability is higher or equal to 0.7")
 
     # Display shap force plot
     shap_explanation = get_shap_explanation(cust_select_id)
@@ -174,5 +208,11 @@ with tab_single:
     fig.set_figheight(6)
     fig.set_figwidth(9)
     st.pyplot(fig)
+
+    # Display some information
+    expander = st.expander("About the SHAP explanation...")
+    expander.write("The above plot displays the explanations for the individual prediction of the customer. \
+                    It shows the postive and negative contribution of the features. \
+                    The final SHAP value is not equal to the prediction probability.")
 
 st.write("")

@@ -7,12 +7,16 @@ from fastapi.responses import HTMLResponse
 import pandas as pd
 import numpy as np
 from sklearn.impute import SimpleImputer
+from sklearn.neighbors import NearestNeighbors
 
 app = FastAPI()
+
 N_CUSTOMERS = 100
+N_NEIGHBORS = 20
 MAIN_COLUMNS = ['CODE_GENDER', 'FLAG_OWN_CAR', 'FLAG_OWN_REALTY', 'CNT_CHILDREN', 
                 'NAME_FAMILY_STATUS_Married', 'NAME_INCOME_TYPE_Working',
                 'AMT_INCOME_TOTAL', 'PAYMENT_RATE']
+CUSTOM_THRESHOLD = 0.7
 
 # Get test dataframe
 test_df = pd.read_csv("./data/processed/test_feature_engineering.csv", index_col=[0])
@@ -25,13 +29,17 @@ xgbc = pickle.load(open('./models/xgboost_classifier.pckl', 'rb'))
 explainer = pickle.load(open('./models/xgboost_shap_explainer.pckl', 'rb'))
 
 
-def prepare_data(data, n_customers):
-    """ Prepare the data and compute the shap values """
+def prepare_data(data, n_neigbhors, n_customers):
+    """ Prepare the data, find the nearest neighbors and compute the shap values """
     data = data.iloc[0: n_customers]
 
     # Fill values with imputer
     imp_mean = SimpleImputer(missing_values=np.nan, strategy='mean').fit(data)
     values = imp_mean.transform(data)
+
+    # Find nearest neighbors
+    neighbors = NearestNeighbors(n_neighbors=n_neigbhors, algorithm='ball_tree').fit(values)
+    _, neighbors_indices = neighbors.kneighbors(values)
 
     # Compute shap values
     shap_values = explainer(values)
@@ -39,12 +47,11 @@ def prepare_data(data, n_customers):
     # Create new df
     df = pd.DataFrame(values, columns=data.columns)
 
-    return df, shap_values
+    return df, neighbors_indices, shap_values
 
 
 # Prepare the reduced data and shap values
-prep_df, shap_values = prepare_data(test_df, N_CUSTOMERS)
-
+prep_df, neighbors_indices, shap_values = prepare_data(test_df, N_NEIGHBORS, N_CUSTOMERS)
 
 @app.get('/')
 def main():
@@ -66,14 +73,34 @@ def columns(cust_id: int):
     cust_main_df = prep_df.iloc[cust_id][MAIN_COLUMNS]
     return cust_main_df.to_json()
 
+
+@app.get("/columns/mean")
+def colmuns_mean():
+    """ Return the main columns mean values """
+    mean_df = prep_df[MAIN_COLUMNS].mean()
+    return mean_df.to_json()
+
+
+@app.get("/columns/neighbors/id={cust_id}")
+def colmuns_neighbors(cust_id: int):
+    """ Return the 20 nearest neighbors main columns mean values """
+    if cust_id not in range(0, N_CUSTOMERS):
+        raise HTTPException(status_code=404, detail="Customer id not found")
+    neighbors_df = prep_df[MAIN_COLUMNS].iloc[neighbors_indices[cust_id]].mean()
+    return neighbors_df.to_json()
+
+
 @app.get("/predict/id={cust_id}")
 def predict(cust_id: int):
     """ Return the customer predictions of repay """
     if cust_id not in range(0, N_CUSTOMERS):
         raise HTTPException(status_code=404, detail="Customer id not found")
     pred_default = xgbc.predict(prep_df.values)[cust_id]
-    pred_custom = (xgbc.predict_proba(prep_df.values)[cust_id, 1] >= 0.7).astype(int)
-    return {'default': pred_default.tolist(), 'custom': pred_custom.tolist()}
+    proba = xgbc.predict_proba(prep_df.values)[cust_id, 0]
+    pred_custom = (proba < CUSTOM_THRESHOLD).astype(int)
+    return {'default': pred_default.tolist(),
+            'custom': pred_custom.tolist(),
+            'proba': proba.tolist()}
 
 
 @app.get("/shap")
@@ -94,9 +121,9 @@ def explain(cust_id: int):
             'features': explainer.feature_names}
 
 
-@app.get("/importances/model")
+@app.get("/importances")
 def importances():
-    """ Return the model 15 top feature importances """
+    """ Return the xgboost 15 top feature importances """
     imp_df = pd.DataFrame(data=xgbc.feature_importances_, index=test_columns, columns=['importances'])
     imp_df = imp_df.sort_values(by='importances', ascending=False).head(15)
     return imp_df.to_json()
