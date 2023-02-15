@@ -113,6 +113,14 @@ def st_shap(plot, height=None):
     components.html(shap_html, height=height)
 
 
+@st.cache
+def get_datadrift_report():
+    """ Get data drift html report """
+    response = requests.get(API_URL + "datadrift", timeout=TIMEOUT)
+    content = json.loads(response.content)
+    return content['html']
+
+
 # Title
 st.title('Credit scoring application')
 st.subheader("Victor BARBIER - Data Scientist - Projet 7")
@@ -155,8 +163,14 @@ with tab_all:
         shap.summary_plot(shap_values, max_display=15, plot_type='bar', plot_size=[12, 6], show=False)
         st.pyplot(fig)
         expander = st.expander("About the feature importances..")
-        expander.write("The feature importances displayed is computed from the SHAP values of the new customers. (test dataset)")
+        expander.write("The feature importances displayed is computed from the SHAP values of the new customers. (test data)")
 
+    # Display the datadrift report 
+    st.subheader("Data drift report")
+    components.html(get_datadrift_report(), height=1000, scrolling=True)
+    expander = st.expander("About the data drift...")
+    expander.write("The data drift report shows the drift between the data used to train the model \
+                    and the customers data used in this application (test data).")
 
 # Specific customer tab
 with tab_single:

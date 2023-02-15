@@ -22,11 +22,14 @@ CUSTOM_THRESHOLD = 0.7
 test_df = pd.read_csv("./data/processed/test_feature_engineering.gzip", compression='gzip', index_col=[0])
 test_columns = test_df.columns
 
-# Unpick XGB classifier
+# Deserialize XGB classifier
 xgbc = pickle.load(open('./models/xgboost_classifier.pckl', 'rb'))
 
-# Unpick SHAP explainer
+# Deserialize SHAP explainer
 explainer = pickle.load(open('./models/xgboost_shap_explainer.pckl', 'rb'))
+
+# Get datadrift html report
+drift_report = open('./docs/data_drift_report.html', 'rb')
 
 
 def prepare_data(data, n_neigbhors, n_customers):
@@ -128,6 +131,10 @@ def importances():
     imp_df = imp_df.sort_values(by='importances', ascending=False).head(15)
     return imp_df.to_json()
 
+@app.get("/datadrift")
+def datadrift():
+    """ Return the datadrift html report """
+    return {'html': drift_report.read()}
 
 if __name__ == "__main__":
     uvicorn.run("scoring_api:app", reload=True, host="0.0.0.0", port=8000)
