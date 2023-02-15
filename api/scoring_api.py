@@ -11,7 +11,7 @@ from sklearn.neighbors import NearestNeighbors
 
 app = FastAPI()
 
-N_CUSTOMERS = 100
+N_CUSTOMERS = 1000
 N_NEIGHBORS = 20
 MAIN_COLUMNS = ['CODE_GENDER', 'FLAG_OWN_CAR', 'FLAG_OWN_REALTY', 'CNT_CHILDREN', 
                 'NAME_FAMILY_STATUS_Married', 'NAME_INCOME_TYPE_Working',
