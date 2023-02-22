@@ -130,8 +130,8 @@ st.write("")
 # Settings on sidebar
 st.sidebar.subheader("Settings")
 # Select the prediction threshold
-pred_thresh = st.sidebar.radio("Prediction threshold : ", ('Default', 'Optimized'),
-                               help="Threshold of the prediction for loan repaid (standard=0.5, optimized=0.7)")
+pred_thresh = st.sidebar.slider("Prediction threshold : ", 0.15, 0.50, value=0.50, step=0.05,
+                                help="Threshold of the prediction for class 1 : repay failure (standard=0.5)")
 # Select type of explanation
 shap_plot_type = st.sidebar.radio("Select the plot type :", ('Waterfall', 'Bar'),
                                   help="Type of plot for the SHAP explanation")
@@ -194,19 +194,20 @@ with tab_single:
     # Display prediction
     st.subheader("Customer prediction")
     predictions = get_predictions(cust_select_id)
-    pred = predictions['default'] if pred_thresh == 'Default' else predictions['custom']
+    
+    pred = (predictions['proba'] <= pred_thresh)
     pred_text = "**:" + CLASSES_COLORS[pred] + "[" + CLASSES_NAMES[pred] + "]**"
     st.markdown("The model prediction is " + pred_text)
     probability = round(predictions['proba'], 2)
-    delta = probability - 0.5 if pred_thresh == 'Default' else probability - 0.7
+    delta = probability - pred_thresh
     st.metric(label="Probability to repay", value=probability, delta=round(delta, 2))
 
     # Display some information
     expander = st.expander("About the classification model...")
     expander.write("The prediction was made using a XGBoost classification model.")
     expander.write("The model threshold can be modified in the settings. \
-                    The default threshold predict a loan repaid when probability is higher or equal to 0.5. \
-                    The optimized threshold predict a loan repaid when probability is higher or equal to 0.7")
+                    The default threshold predict a repay failure when probability is lower or equal to 0.5. \
+                    The best optimized threshold predict a repay failure when probability is lower or equal to 0.15")
 
     # Display shap force plot
     shap_explanation = get_shap_explanation(cust_select_id)

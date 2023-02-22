@@ -98,12 +98,8 @@ def predict(cust_id: int):
     """ Return the customer predictions of repay """
     if cust_id not in range(0, N_CUSTOMERS):
         raise HTTPException(status_code=404, detail="Customer id not found")
-    pred_default = xgbc.predict(prep_df.values)[cust_id]
     proba = xgbc.predict_proba(prep_df.values)[cust_id, 0]
-    pred_custom = (proba < CUSTOM_THRESHOLD).astype(int)
-    return {'default': pred_default.tolist(),
-            'custom': pred_custom.tolist(),
-            'proba': proba.tolist()}
+    return {'proba': proba.tolist()}
 
 
 @app.get("/shap")
