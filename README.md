@@ -18,10 +18,12 @@ Project Organization
     ├── dashboard          <- Streamlit application
     │
     ├── data
-    │   ├── external       <- Data from third party sources
+    │   ├── external       <- Data from third party sources (not uploaded on git)
     │   ├── processed      <- The final, canonical data sets for modeling
     │
     ├── docs               <- Documentation and reports
+    │
+    ├── mlruns             <- MLFlow runs   
     │
     ├── models             <- Trained and serialized models
     │
