@@ -15,7 +15,8 @@ N_CUSTOMERS = 1000
 N_NEIGHBORS = 20
 MAIN_COLUMNS = ['CODE_GENDER', 'FLAG_OWN_CAR', 'FLAG_OWN_REALTY', 'CNT_CHILDREN', 
                 'NAME_FAMILY_STATUS_Married', 'NAME_INCOME_TYPE_Working',
-                'AMT_INCOME_TOTAL', 'PAYMENT_RATE']
+                'AMT_INCOME_TOTAL', 'PAYMENT_RATE', 
+                'DAYS_BIRTH', 'DAYS_EMPLOYED']
 CUSTOM_THRESHOLD = 0.7
 
 # Get test dataframe
@@ -95,10 +96,11 @@ def colmuns_neighbors(cust_id: int):
 
 @app.get("/predict/id={cust_id}")
 def predict(cust_id: int):
-    """ Return the customer predictions of repay """
+    """ Return the customer predictions of repay failure (class 1) """
     if cust_id not in range(0, N_CUSTOMERS):
         raise HTTPException(status_code=404, detail="Customer id not found")
-    proba = xgbc.predict_proba(prep_df.values)[cust_id, 0]
+    row = pd.DataFrame(prep_df.iloc[cust_id]).T
+    proba = xgbc.predict_proba(row)[0][1]  # prediction of class 1
     return {'proba': proba.tolist()}
 
 
@@ -127,10 +129,12 @@ def importances():
     imp_df = imp_df.sort_values(by='importances', ascending=False).head(15)
     return imp_df.to_json()
 
+
 @app.get("/datadrift")
 def datadrift():
     """ Return the datadrift html report """
     return {'html': drift_report.read()}
+
 
 if __name__ == "__main__":
     uvicorn.run("scoring_api:app", reload=True, host="0.0.0.0", port=8000)

@@ -13,12 +13,13 @@ import names
 # API_URL = "http://0.0.0.0:8000/"
 API_URL = "https://scoringapp-api.azurewebsites.net/"
 
-# Timeout for requests
-TIMEOUT = 5
+# Timeout for requests (connect, read)
+TIMEOUT = (5, 30)
 
 # Prediction classes
 CLASSES_NAMES = ['REPAY SUCCESS', 'REPAY FAILURE']
 CLASSES_COLORS = ['green', 'red']
+
 
 # Functions
 @st.cache
@@ -61,7 +62,7 @@ def get_columns_neighbors(cust_id):
 
 @st.cache
 def get_predictions(cust_id):
-    """ Get customer prediction """
+    """ Get customer prediction (class 1 : repay failure) """
     response = requests.get(API_URL + "predict/id=" + str(cust_id), timeout=TIMEOUT)
     content = json.loads(response.content)
     return content
@@ -195,10 +196,10 @@ with tab_single:
     st.subheader("Customer prediction")
     predictions = get_predictions(cust_select_id)
     
-    pred = (predictions['proba'] <= pred_thresh)
+    pred = (predictions['proba'] >= pred_thresh)
     pred_text = "**:" + CLASSES_COLORS[pred] + "[" + CLASSES_NAMES[pred] + "]**"
     st.markdown("The model prediction is " + pred_text)
-    probability = round(predictions['proba'], 2)
+    probability = 1 - round(predictions['proba'], 2)  # probability of repay (class 0)
     delta = probability - pred_thresh
     st.metric(label="Probability to repay", value=probability, delta=round(delta, 2))
 
