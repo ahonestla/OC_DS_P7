@@ -200,7 +200,7 @@ with tab_single:
     pred_text = "**:" + CLASSES_COLORS[pred] + "[" + CLASSES_NAMES[pred] + "]**"
     st.markdown("The model prediction is " + pred_text)
     probability = 1 - round(predictions['proba'], 2)  # probability of repay (class 0)
-    delta = probability - pred_thresh
+    delta = probability - 1 + pred_thresh
     st.metric(label="Probability to repay", value=probability, delta=round(delta, 2))
 
     # Display some information
