@@ -6,7 +6,7 @@ Credit scoring application
 
 GitHub : https://github.com/ahonestla/OC_DS_P7
 Data : https://www.kaggle.com/c/home-credit-default-risk/data
-
+Application : https://scoringapp-dashboard.azurewebsites.net/
 Project Organization
 ------------
 
