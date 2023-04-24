@@ -1,13 +1,13 @@
-oc_p7
-==============================
+## 🏦 Scoring credit application
+OPENCLASSROOMS - Data Scientist - Project 7
 
-OPENCLASSROOMS - Formation Data Scientist - Projet 7
-Credit scoring application
+This repository contains files to build, run and deploy a machine learning web application which predicts the probabiliy for a customer to repay a loan. 
 
-GitHub : https://github.com/ahonestla/OC_DS_P7
-Data : https://www.kaggle.com/c/home-credit-default-risk/data
-Application : https://scoringapp-dashboard.azurewebsites.net/
-Project Organization
+### 📊 Data
+
+The dataset used for this project is the [Home Credit Default Risk](https://www.kaggle.com/c/home-credit-default-risk/data), which includes information on hundreds of thousands loans.
+
+### 📁 Project Organization
 ------------
 
     ├── LICENSE
@@ -19,7 +19,7 @@ Project Organization
     │
     ├── data
     │   ├── external       <- Data from third party sources (not uploaded on git)
-    │   ├── processed      <- The final, canonical data sets for modeling
+    │   ├── processed      <- Data after analysis and feature engineering
     │
     ├── docs               <- Documentation and reports
     │
@@ -31,7 +31,27 @@ Project Organization
     │
     ├── tests              <- Pytest unit tests (local)
 
+### 🛠️ Tools
 
---------
+- Python 3.x
+- Jupyter Notebook
+- NumPy
+- Pandas
+- Matplotlib / Seaborn
+- Scikit-learn
+- Imbalanced-learn
+- XGBoost
+- LightGBM
+- Hyperopt
+- SHAP
+- Evidently
+- MLFlow
+- Streamlit
+- FastAPI
+- Docker
+- GitHub Actions
+- Azure Web App
 
-<p> The application is automatically deployed on azure with GitHub Actions </p>
+### 🔗 Links
+
+- Application : https://scoringapp-dashboard.azurewebsites.net/ (stopped)
